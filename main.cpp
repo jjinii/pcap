@@ -31,6 +31,13 @@ void port_print(uint16_t port){
     printf("%d\n",ntohs(port));
 }
 
+void data_print(uint8_t *packet ,uint16_t length){
+    printf("data = ");
+    for(int i=0; i<length; i++)
+        printf("%02x ", packet[i]);
+    printf("\n");
+    printf("------------------------------------");
+}
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -83,17 +90,23 @@ int main(int argc, char* argv[]) {
                 printf("dst port =");
                 port_print(tp->dest);
 
-                if(ntohs(tp->dest) == 80 || ntohs(tp->source) == 80)
+
+                packet += tp->doff*4;
+                uint16_t h = (ntohs(ip->tot_len) - (ip->ihl*4 + tp->doff*4));
+
+                if(h != 0)
                 {
-                    packet += tp->doff*4;
-                    if(((ntohs(ip->tot_len)) - (ip->ihl*4 + tp->doff*4)) >= 16)
+                    if(h >= 16)
                     {
-                        printf("data = ");
-                        for(int i=0; i<16; i++)
-                            printf("%02x ", packet[i]);
-                        printf("\n");
-                        printf("------------------------------------");
+
+                        data_print((uint8_t*)packet,16);
+
                     }
+                    else
+                    {
+                        data_print((uint8_t*)packet,h);
+                    }
+
                 }
 
             }
